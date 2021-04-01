@@ -2,6 +2,7 @@ import { BehaviorSubject, Observable, Subscription } from "rxjs"
 import { map } from "rxjs/operators"
 import { renderSpec } from "./"
 import { DOMOutputSpec } from "./lib/DOMOutputSpec"
+import { map$Class } from "./lib/rxjs-helpers"
 
 function expectSpec(structure: DOMOutputSpec) {
   return expect(renderSpec(new Subscription(), structure))
@@ -468,12 +469,12 @@ describe("rendering with observable class$", () => {
     // if includeC emits `true` make `class="a b c"`, if `false`, then `class="a b"`
     testABmaybeC((includeC) => [
       { class: "a b", $class: { c: includeC } },
-      { class: "a b", $class: includeC.map$Class((c) => c && "c") },
-      { class: "a b", $class: [includeC.map$Class((c) => (c ? "c" : ""))] },
+      { class: "a b", $class: includeC.pipe(map$Class((c) => c && "c")) },
+      { class: "a b", $class: [includeC.pipe(map$Class((c) => (c ? "c" : "")))] },
       { $class: ["a b", { c: includeC }] },
-      { $class: ["a b", includeC.map$Class((c) => ({ c }))] },
-      { $class: ["a b", includeC.map$Class((c) => c && "c")] },
-      { $class: includeC.map$Class((c) => `a b ${c ? "c" : ""}`) },
+      { $class: ["a b", includeC.pipe(map$Class((c) => ({ c })))] },
+      { $class: ["a b", includeC.pipe(map$Class((c) => c && "c"))] },
+      { $class: includeC.pipe(map$Class((c) => `a b ${c ? "c" : ""}`)) },
     ])
   })
 
