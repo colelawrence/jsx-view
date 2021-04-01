@@ -1,0 +1,11 @@
+node_modules
+/out/*
+/dist/*
+/lib/*
+/index.*
+
+*.log
+*.tsbuildinfo
+
+.DS_Store
+.idea

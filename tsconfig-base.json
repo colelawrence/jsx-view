@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "outDir": "out",
+    "rootDir": "src",
+    "target": "ES2019",
+    "lib": [
+      "DOM"
+    ],
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "importHelpers": true,
+    "declaration": true,
+    "declarationMap": true,
+    "strict": true,
+    "noImplicitAny": false,
+    "forceConsistentCasingInFileNames": true
+  },
+  "typeAcquisition": {
+    "enable": false,
+    "exclude": [
+      "react"
+    ]
+  },
+  "include": [
+    "./src/*.ts",
+    "./src/*.tsx",
+    "./src/**/*.tsx",
+    "./src/**/*.ts"
+  ]
+}
