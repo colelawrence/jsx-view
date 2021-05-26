@@ -1,6 +1,6 @@
 {
   "name": "jsx-view",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Minimal JSX templating tightly integrated with RxJS",
   "main": "index.js",
   "scripts": {

@@ -60,7 +60,12 @@ function isDirectAssignProp(prop: string): boolean {
  * * **Modified to work with observables on attribute setters see `else if (name.startsWith("on"))`**
  * * **Modified to work with `ref` attributes**
  */
-function renderSpecDoc(doc: Document, parentSub: Subscription, structure: DOMOutputSpec): Node | Text {
+function renderSpecDoc(
+  doc: Document,
+  parentSub: Subscription,
+  structure: DOMOutputSpec,
+  xmlNS: string | null = null,
+): Node | Text {
   if (structure instanceof DOMSpecElement) structure = structure.spec
   if (typeof structure === "string") return doc.createTextNode(structure)
   if (structure == null || structure === false) return doc.createTextNode("")
@@ -85,14 +90,17 @@ function renderSpecDoc(doc: Document, parentSub: Subscription, structure: DOMOut
     return obsNode
   }
   if (structure["nodeType"] != null) return structure as Node
-  const tagName = structure[0]
+  let tagName = structure[0]
   if (tagName.indexOf(" ") > 0) {
     throw new RangeError(`Unexpected space in tagName ("${tagName}")`)
   }
   const attrs = structure[1]
   let ref: ((self: HTMLElement, sub: Subscription) => any) | undefined = undefined
   let classAttrHandled = false
-  const dom = doc.createElement(attrs?.is ?? tagName) as HTMLElement
+
+  tagName = attrs?.is ?? tagName
+  if (tagName === "svg") xmlNS = "http://www.w3.org/2000/svg"
+  const dom = (xmlNS ? doc.createElementNS(xmlNS, tagName) : doc.createElement(tagName)) as HTMLElement
   if (attrs != null) {
     for (let name in attrs) {
       if (name === "is") continue // handled above
@@ -207,7 +215,7 @@ function renderSpecDoc(doc: Document, parentSub: Subscription, structure: DOMOut
   // @ts-ignore
   for (let i = 2; i < structure.length; i++) {
     let child = structure[i]
-    const inner = renderSpecDoc(doc, parentSub, child)
+    const inner = renderSpecDoc(doc, parentSub, child, xmlNS)
     dom.appendChild(inner)
   }
   // call ref after the inner contents are created
