@@ -4,6 +4,7 @@ import { DOMOutputSpec } from "./DOMOutputSpec"
 import { DOMSpecElement } from "./jsxSpec"
 import { map$Class } from "./rxjs-helpers"
 import { subscribeState } from "./subscribeState"
+import { isObservableUnchecked } from "./isObservableUnchecked"
 
 export function renderSpec(parentSub: Subscription, structure: DOMOutputSpec): HTMLElement {
   // must wrap top-level observable in an element, or the HTMLElement returned will not update
@@ -69,7 +70,7 @@ function renderSpecDoc(
   if (structure instanceof DOMSpecElement) structure = structure.spec
   if (typeof structure === "string") return doc.createTextNode(structure)
   if (structure == null || structure === false) return doc.createTextNode("")
-  if (isObservable<DOMOutputSpec>(structure)) {
+  if (isObservableUnchecked<DOMOutputSpec>(structure)) {
     let obsNode: HTMLElement = doc.createElement("render-observable") // temporary until the first is rendered
     subscribeState(parentSub, structure, (spec, whileSpec) => {
       const oldNode = obsNode
@@ -123,14 +124,14 @@ function renderSpecDoc(
           const valTag = attrs.tags as JSX.Value<string[]> | undefined
           if (valTag != null) {
             classNamesList.push(
-              isObservable<string[] | undefined>(valTag)
+              isObservableUnchecked<string[] | undefined>(valTag)
                 ? valTag.pipe(map$Class(mapTagsToClassNames))
                 : mapTagsToClassNames(valTag),
             )
           }
           for (let i = 0; i < classNamesList.length; i++) {
             const classItem = classNamesList[i]
-            if (isObservable<string | string[] | Record<string, any> | undefined | null | false>(classItem)) {
+            if (isObservableUnchecked<string | string[] | Record<string, any> | undefined | null | false>(classItem)) {
               let previousClasses: string[] = []
               parentSub.add(
                 classItem.subscribe((a) => {
@@ -162,7 +163,7 @@ function renderSpecDoc(
                   const classVal = classItem[className]
                   // just check if truthy
                   if (classVal) {
-                    if (isObservable<boolean | undefined | null>(classVal)) {
+                    if (isObservableUnchecked<boolean | undefined | null>(classVal)) {
                       parentSub.add(
                         classVal.pipe(distinctUntilChanged()).subscribe((shouldAdd) => {
                           dom.classList.toggle(className, !!shouldAdd)

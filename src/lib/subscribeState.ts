@@ -1,4 +1,5 @@
-import { Observable, Subscription } from "rxjs"
+import { Subscription } from "rxjs"
+import type { Observable } from "rxjs"
 
 /**
  * ### `subscribeState` helper

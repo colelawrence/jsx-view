@@ -1,6 +1,8 @@
-import { combineLatest, isObservable, Observable, of } from "rxjs"
+import type { Observable } from "rxjs"
+import { combineLatest, of } from "rxjs"
 import { map } from "rxjs/operators"
-import { DOMOutputSpec } from "./DOMOutputSpec"
+import type { DOMOutputSpec } from "./DOMOutputSpec"
+import { isObservableUnchecked } from "./isObservableUnchecked"
 
 declare global {
   namespace JSX {
@@ -32,7 +34,7 @@ export function jsxCombineValues<T>(
   values: (JSX.Value<T> | undefined)[],
   merge: (values: (T | undefined)[]) => T,
 ): JSX.Value<T> | undefined {
-  return combineLatest(values.map((a) => (isObservable<T>(a) ? a : of(a as T | undefined)))).pipe(map(merge))
+  return combineLatest(values.map((a) => (isObservableUnchecked<T>(a) ? a : of(a as T | undefined)))).pipe(map(merge))
 }
 
 function flattenChildren(...children: JSX.Child[]): JSX.Element[] {

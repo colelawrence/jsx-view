@@ -1,4 +1,5 @@
-import { BehaviorSubject, Observable, OperatorFunction, UnaryFunction } from "rxjs"
+import type { Observable, OperatorFunction, UnaryFunction } from "rxjs"
+import { BehaviorSubject } from "rxjs"
 import { map } from "rxjs/operators"
 
 /** For use as an embedded structure */
