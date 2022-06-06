@@ -1,0 +1,8 @@
+node_modules
+/out/*
+/dist/*
+/lib/*
+
+/index.*
+/jsx-runtime.*
+/jsx-dev-runtime.*

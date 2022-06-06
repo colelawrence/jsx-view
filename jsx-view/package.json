@@ -1,0 +1,34 @@
+{
+  "name": "jsx-view",
+  "version": "0.0.5",
+  "description": "Minimal JSX templating tightly integrated with RxJS",
+  "main": "index.js",
+  "scripts": {
+    "build": "rimraf index.* jsx*runtime.* dist/* lib/* && tsc -p ./tsconfig-build.json",
+    "test": "jest",
+    "playground": "pnpm -C packages/playground start"
+  },
+  "keywords": [
+    "JSX",
+    "MVVM",
+    "Template",
+    "TypeScript",
+    "RxJS",
+    "FRP"
+  ],
+  "author": "Cole Lawrence <cole@colelawrence.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^26.0.24",
+    "jest": "^28",
+    "rimraf": "^3.0.2",
+    "rxjs": "^7.5",
+    "ts-jest": "^28",
+    "tslib": "^2.4",
+    "typescript": "^4.7.3"
+  },
+  "peerDependencies": {
+    "rxjs": "^7",
+    "tslib": "^2.0"
+  }
+}

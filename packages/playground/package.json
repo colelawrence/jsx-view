@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "start": "esbuild ./index.tsx  --servedir=www --outdir=www/js --bundle"
+  },
+  "devDependencies": {
+    "esbuild": "^0.14.42",
+    "rxjs": "^7.5.5"
+  }
+}

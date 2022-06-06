@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "outDir": "out",
-    "rootDir": "src",
-    "target": "ES2019",
+    "target": "ESNext",
     "lib": [
-      "DOM"
+      "DOM",
+      "ESNext"
     ],
     "module": "CommonJS",
     "moduleResolution": "node",
@@ -13,19 +13,22 @@
     "declaration": true,
     "declarationMap": true,
     "strict": true,
+    "allowJs": false,
     "noImplicitAny": false,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "jsx-view": [
+        "./jsx-view/src/index.ts"
+      ],
+      "jsx-view/*": [
+        "./jsx-view/src/*"
+      ]
+    }
   },
   "typeAcquisition": {
     "enable": false,
     "exclude": [
       "react"
     ]
-  },
-  "include": [
-    "./src/*.ts",
-    "./src/*.tsx",
-    "./src/**/*.tsx",
-    "./src/**/*.ts"
-  ]
+  }
 }

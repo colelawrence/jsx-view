@@ -78,7 +78,7 @@ function renderSpecDoc(
         doc,
         whileSpec,
         spec == null || spec === false
-          ? createEmptyNode(document)
+          ? createEmptyNode(doc)
           : spec instanceof DOMSpecElement || Array.isArray(spec)
           ? // will have a valid HTMLElement container
             (spec as DOMOutputSpec)

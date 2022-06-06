@@ -25,7 +25,7 @@ export function jsxSpec(
   // to fix the children before passing along to `renderSpec`.
   ...children: JSX.Child[]
 ): JSX.Element {
-  const fixChildren: JSX.Element[] = flattenChildren(...children)
+  const fixChildren = flattenChildren(children)
   if (typeof elemName === "string") return new DOMSpecElement([elemName, props, ...fixChildren])
   else return elemName(props ?? {}, fixChildren) as any
 }
@@ -37,14 +37,14 @@ export function jsxCombineValues<T>(
   return combineLatest(values.map((a) => (isObservableUnchecked<T>(a) ? a : of(a as T | undefined)))).pipe(map(merge))
 }
 
-function flattenChildren(...children: JSX.Child[]): JSX.Element[] {
-  return flatMap(Array.from(children), (a) => {
+function flattenChildren(children: JSX.Child[]): JSX.Element[] {
+  return flatMap(children, (a) => {
     if (a == null) return []
     if (a instanceof DOMSpecElement) return a
     if (typeof a === "string") {
       return new DOMSpecElement(a)
     } else if (Array.isArray(a)) {
-      return flattenChildren(...a)
+      return flattenChildren(a)
     } else {
       return new DOMSpecElement(typeof a === "number" ? String(a) : a)
     }

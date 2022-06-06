@@ -1,0 +1,9 @@
+{
+  "type": "module",
+  "scripts": {
+    "start": "tsc && node ./out/context-lookup.js"
+  },
+  "devDependencies": {
+    "@thi.ng/bench": "^3.1.6"
+  }
+}
