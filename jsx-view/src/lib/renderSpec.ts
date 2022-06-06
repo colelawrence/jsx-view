@@ -1,17 +1,18 @@
 import { isObservable, Subscription } from "rxjs"
 import { distinctUntilChanged } from "rxjs/operators"
 import { DOMOutputSpec } from "./DOMOutputSpec"
-import { DOMSpecElement } from "./jsxSpec"
+import { DOMSpecElement, ExoticSpec as ExoticSpec } from "./jsxSpec"
 import { map$Class } from "./rxjs-helpers"
 import { subscribeState } from "./subscribeState"
 import { isObservableUnchecked } from "./isObservableUnchecked"
+import { Context } from "./Context"
 
 export function renderSpec(parentSub: Subscription, structure: DOMOutputSpec): HTMLElement {
   // must wrap top-level observable in an element, or the HTMLElement returned will not update
   // if it's detached from the DOM (which is very confusing)
   if (isObservable(structure)) throw new Error("Cannot render an observable root")
   // DOMOutputSpec must result in an HTMLElement
-  return renderSpecDoc(document, parentSub, structure) as HTMLElement
+  return renderSpecDoc(document, parentSub, structure, []) as HTMLElement
 }
 
 /** Examples: `<input disabled/>`, `<script defer .../>`, etc. */
@@ -53,6 +54,17 @@ function isDirectAssignProp(prop: string): boolean {
   )
 }
 
+type InternalContextItem<T> = { c: Context<T>; v: T }
+
+let currentContext: InternalContextItem<any>[] = []
+
+export function useContext<T>(context: Context<T>): T {
+  for (let i = currentContext.length - 1; i > -1; i--) {
+    if (currentContext[i].c === context) return currentContext[i].v
+  }
+  return context.defaultValue
+}
+
 /**
  * :: (dom.Document, DOMOutputSpec) → {dom: dom.Node, subscription: rxjs.Subscription}
  * Render an [output spec](#model.DOMOutputSpec) to a DOM node.
@@ -65,14 +77,24 @@ function renderSpecDoc(
   doc: Document,
   parentSub: Subscription,
   structure: DOMOutputSpec,
+  context: Array<InternalContextItem<any>>,
   xmlNS: string | null = null,
 ): Node | Text {
   if (structure instanceof DOMSpecElement) structure = structure.spec
   if (typeof structure === "string") return doc.createTextNode(structure)
+  if (structure instanceof ExoticSpec) {
+    let exoticContext = context
+    if (structure.options.addToContext?.length) {
+      exoticContext = [...exoticContext, ...structure.options.addToContext]
+    }
+    return renderSpecDoc(doc, parentSub, ["jsx-provider", null, ...structure.options.children], exoticContext, xmlNS)
+  }
   if (structure == null || structure === false) return doc.createTextNode("")
   if (isObservableUnchecked<DOMOutputSpec>(structure)) {
     let obsNode: HTMLElement = doc.createElement("render-observable") // temporary until the first is rendered
     subscribeState(parentSub, structure, (spec, whileSpec) => {
+      const prevContext = currentContext
+      currentContext = context
       const oldNode = obsNode
       obsNode = renderSpecDoc(
         doc,
@@ -81,10 +103,12 @@ function renderSpecDoc(
           ? createEmptyNode(doc)
           : spec instanceof DOMSpecElement || Array.isArray(spec)
           ? // will have a valid HTMLElement container
-            (spec as DOMOutputSpec)
+            (spec as DOMOutputSpec | ExoticSpec)
           : // might not have a container
             ["render-observable", null, spec],
+        context,
       ) as HTMLElement
+      currentContext = prevContext
       oldNode.replaceWith(obsNode)
     })
 
@@ -216,7 +240,7 @@ function renderSpecDoc(
   // @ts-ignore
   for (let i = 2; i < structure.length; i++) {
     let child = structure[i]
-    const inner = renderSpecDoc(doc, parentSub, child, xmlNS)
+    const inner = renderSpecDoc(doc, parentSub, child, currentContext, xmlNS)
     dom.appendChild(inner)
   }
   // call ref after the inner contents are created

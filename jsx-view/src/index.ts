@@ -9,4 +9,5 @@ import "./lib/declare/declare-values"
 
 export * from "./lib/renderSpec"
 export * from "./lib/rxjs-helpers"
+export * from "./lib/Context"
 export * from "./lib/subscribeState"

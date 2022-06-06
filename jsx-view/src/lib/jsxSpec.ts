@@ -3,11 +3,12 @@ import { combineLatest, of } from "rxjs"
 import { map } from "rxjs/operators"
 import type { DOMOutputSpec } from "./DOMOutputSpec"
 import { isObservableUnchecked } from "./isObservableUnchecked"
+import type { Context } from "./Context"
 
 declare global {
   namespace JSX {
     // Element has to be its own type in order to support flattening a problem child like: ["Hello", ["div", "World"]] in JSX
-    type Element = DOMSpecElement
+    type Element = DOMSpecElement | ExoticSpec
     /** Child type for specifying functions that return a child element */
     type Child = undefined | null | false | string | number | Node | JSX.Element | Observable<Child>
   }
@@ -15,6 +16,10 @@ declare global {
 
 export class DOMSpecElement {
   constructor(public readonly spec: DOMOutputSpec) {}
+}
+
+export class ExoticSpec {
+  constructor(public readonly options: { addToContext?: { c: Context<any>; v: any }[]; children: JSX.Element[] }) {}
 }
 
 export function jsxSpec(
