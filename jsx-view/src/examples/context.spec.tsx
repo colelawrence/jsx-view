@@ -1,4 +1,4 @@
-import { createContext, useContext, jsxSpec, renderSpec } from ".."
+import { createContext, useContext, jsxSpec, renderElement } from ".."
 import { DOMOutputSpec } from "../lib/DOMOutputSpec"
 import { Subscription } from "rxjs"
 
@@ -43,8 +43,8 @@ describe("jsx-view context", () => {
 })
 
 function expectComponent<P extends {}>(props: P, component: (props: P, children: any[]) => JSX.Element) {
-  return expect(renderSpec(new Subscription(), jsxSpec(component, props)))
+  return expect(renderElement(new Subscription(), jsxSpec(component, props)))
 }
 function expectSpec(structure: DOMOutputSpec) {
-  return expect(renderSpec(new Subscription(), structure))
+  return expect(renderElement(new Subscription(), structure))
 }

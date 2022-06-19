@@ -1,11 +1,11 @@
 import { BehaviorSubject, Observable, Subscription } from "rxjs"
 import { map } from "rxjs/operators"
-import { renderSpec } from "./"
+import { renderElement } from "./"
 import { DOMOutputSpec } from "./lib/DOMOutputSpec"
 import { map$Class } from "./lib/rxjs-helpers"
 
 function expectSpec(structure: DOMOutputSpec) {
-  return expect(renderSpec(new Subscription(), structure))
+  return expect(renderElement(new Subscription(), structure))
 }
 
 describe("static rendering", () => {
@@ -73,7 +73,7 @@ describe("static rendering", () => {
   it("renders with event handlers", () => {
     const handled: MouseEvent[] = []
 
-    const dom = renderSpec(new Subscription(), [
+    const dom = renderElement(new Subscription(), [
       "div",
       { style: "color: blue" },
       ["button", { onclick: (evt) => handled.push(evt) }, "Click me"],
@@ -279,7 +279,7 @@ describe("rendering with observables", () => {
     const handled: MouseEvent[] = []
     const button$ = new BehaviorSpec(["button", { onclick: (evt) => handled.push(evt) }, "Click me"])
 
-    const dom = renderSpec(new Subscription(), ["div", { style: "color: blue" }, button$])
+    const dom = renderElement(new Subscription(), ["div", { style: "color: blue" }, button$])
     expect(dom).toMatchInlineSnapshot(`
       <div
         style="color: blue"
@@ -325,7 +325,7 @@ describe("rendering with observables", () => {
     const button$ = new BehaviorSpec(["button", { style: buttonStyle$ }, "Click me"])
 
     const subscription = new Subscription()
-    const expectButton = expect(renderSpec(subscription, ["section", null, button$]))
+    const expectButton = expect(renderElement(subscription, ["section", null, button$]))
     expectButton.toMatchInlineSnapshot(`
       <section>
         <button
@@ -459,7 +459,7 @@ describe("rendering with observable $style", () => {
     const from = new BehaviorStyle({ top: "2px" })
 
     expect(() => {
-      renderSpec(new Subscription(), ["div", { $style: from, style: new BehaviorSubject("") }])
+      renderElement(new Subscription(), ["div", { $style: from, style: new BehaviorSubject("") }])
     }).toThrow(new RangeError("Cannot combine $style property with an Observable [style] property."))
   })
 })
@@ -481,7 +481,7 @@ describe("rendering with observable class$", () => {
   function testABmaybeC(props: (includeC: Observable<boolean>) => JSX.AnyProps[]) {
     const includeC = new BehaviorSubject(true)
     const abcProps = props(includeC)
-    const doms = abcProps.map((a, idx) => ({ idx, dom: renderSpec(new Subscription(), ["div", a]) }))
+    const doms = abcProps.map((a, idx) => ({ idx, dom: renderElement(new Subscription(), ["div", a]) }))
     for (const { dom, idx } of doms) {
       if (dom.className !== "a b c") {
         fail(`expected example ${idx} to include "c" as "a b c" classname; found ${JSON.stringify(dom.className)}`)

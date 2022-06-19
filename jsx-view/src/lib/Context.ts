@@ -1,4 +1,4 @@
-import { ExoticSpec } from "./jsxSpec"
+import { ExoticSpec } from "./jsx"
 
 export interface Context<T> {
   readonly defaultValue: T

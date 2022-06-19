@@ -1,5 +1,5 @@
-import { jsxSpec, DOMSpecElement, jsxCombineValues } from "./lib/jsxSpec"
-export { jsxSpec, DOMSpecElement, jsxCombineValues, jsxSpec as h }
+import { jsx, DOMSpecElement, jsxCombineValues } from "./lib/jsx"
+export { jsx as jsxSpec, DOMSpecElement, jsxCombineValues, jsx as h }
 
 import "./lib/declare/declare-events"
 import "./lib/declare/declare-intrinsics"

@@ -1,8 +1,8 @@
 import { Subscription } from "rxjs"
-import { jsxSpec, renderSpec } from "./"
+import { jsxSpec, renderElement } from "./"
 
 function expectSpec(structure: JSX.Element) {
-  return expect(renderSpec(new Subscription(), structure))
+  return expect(renderElement(new Subscription(), structure))
 }
 
 describe("renderSpec special [is] attribute", () => {
