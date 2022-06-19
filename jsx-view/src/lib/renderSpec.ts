@@ -5,6 +5,7 @@ import { DOMSpecElement } from "./jsxSpec"
 import { map$Class } from "./rxjs-helpers"
 import { subscribeState } from "./subscribeState"
 import { isObservableUnchecked } from "./isObservableUnchecked"
+import { globalContextStack } from "./context"
 
 export function renderSpec(parentSub: Subscription, structure: DOMOutputSpec): HTMLElement {
   // must wrap top-level observable in an element, or the HTMLElement returned will not update
@@ -67,7 +68,18 @@ function renderSpecDoc(
   structure: DOMOutputSpec,
   xmlNS: string | null = null,
 ): Node | Text {
-  if (structure instanceof DOMSpecElement) structure = structure.spec
+  let context = null
+  if (structure instanceof DOMSpecElement) {
+    if (Array.isArray(structure.spec)) {
+      const tagName = structure.spec[0]
+      if (tagName === "function") {
+        context = globalContextStack.pushFrame()
+        structure = tagName(structure[1], (structure as unknown as any[]).slice(2))
+        globalContextStack.popFrame()
+      }
+    }
+    structure = structure.spec
+  }
   if (typeof structure === "string") return doc.createTextNode(structure)
   if (structure == null || structure === false) return doc.createTextNode("")
   if (isObservableUnchecked<DOMOutputSpec>(structure)) {

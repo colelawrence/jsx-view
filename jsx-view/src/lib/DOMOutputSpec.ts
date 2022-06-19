@@ -2,7 +2,7 @@ import type { Observable } from "rxjs"
 
 /** @internal */
 interface DOMOutputSpecArray {
-  0: string
+  0: string | ((props: Record<string, any>, children: JSX.Element[]) => JSX.Element)
   // type definition here is slightly awkward, because we can't quite get a full list of all props
   1?: JSX.AnyProps | null
   2?: DOMOutputSpec | 0

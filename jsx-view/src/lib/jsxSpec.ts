@@ -26,8 +26,9 @@ export function jsxSpec(
   ...children: JSX.Child[]
 ): JSX.Element {
   const fixChildren = flattenChildren(children)
-  if (typeof elemName === "string") return new DOMSpecElement([elemName, props, ...fixChildren])
-  else return elemName(props ?? {}, fixChildren) as any
+  return new DOMSpecElement([elemName, props, ...fixChildren])
+  // if (typeof elemName === "string") return new DOMSpecElement([elemName, props, ...fixChildren])
+  // else return elemName(props ?? {}, fixChildren) as any
 }
 
 export function jsxCombineValues<T>(
