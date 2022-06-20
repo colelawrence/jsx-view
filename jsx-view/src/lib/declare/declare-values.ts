@@ -1,4 +1,4 @@
-import type { Observable, Subscription } from "rxjs"
+import type { Observable, Observer, Subscription } from "rxjs"
 
 // Fixes snowpack failing to import this file
 export default 0
@@ -10,7 +10,7 @@ declare global {
     type NumberValue = Value<number>
     type BooleanValue = Value<boolean>
     type DateValue = Value<Date>
-    type RefValue = (renderedSelf: HTMLElement, subscription: Subscription) => any
+    type RefValue<T = DOMElement> = ((dom: T, sub: Subscription) => any) | Observer<{ dom: T; sub: Subscription }>
     type $StyleValue = Value<Partial<CSSStyleDeclaration>>
     /**
      * Nestable lists of class names compatible
@@ -30,9 +30,9 @@ declare global {
       | BooleanValue
       | DateValue
       | NumberValue
-      | RefValue
+      | RefValue<any>
       | StringValue
-      | ((this: HTMLElement, event: any) => any)
+      | ((this: DOMElement, event: any) => any)
       | null
       | undefined
   }

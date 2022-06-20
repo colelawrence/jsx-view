@@ -320,8 +320,9 @@ declare global {
       width?: NumberValue
       height?: NumberValue
     }
+
     /** AnyProps is a general props definition for intrinsic elements (<a>, <div>, <iframe>, etc.) */
-    interface AnyProps extends HtmlProps {
+    interface AnyProps extends ElementProps {
       [attrName: string]: AnyValue
     }
   }

@@ -946,7 +946,7 @@ declare global {
       /** SVG element https://developer.mozilla.org/en-US/docs/Web/SVG/Element/stop */
       stop: AnyProps
 
-      /** SVG elemen–t https://developer.mozilla.org/en-US/docs/Web/SVG/Element/svg */
+      /** SVG element https://developer.mozilla.org/en-US/docs/Web/SVG/Element/svg */
       svg: AnyProps
 
       /** SVG element https://developer.mozilla.org/en-US/docs/Web/SVG/Element/switch */

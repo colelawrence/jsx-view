@@ -1,18 +1,95 @@
-import { isObservable, Subscription } from "rxjs"
+import { isObservable, Observer, Subscription } from "rxjs"
 import { distinctUntilChanged } from "rxjs/operators"
 import { DOMOutputSpec } from "./DOMOutputSpec"
 import { DOMSpecElement } from "./jsxSpec"
 import { map$Class } from "./rxjs-helpers"
 import { subscribeState } from "./subscribeState"
 import { isObservableUnchecked } from "./isObservableUnchecked"
-import { globalContextStack } from "./context"
+import { St } from "./stack"
+import { Context } from "./Context"
 
-export function renderSpec(parentSub: Subscription, structure: DOMOutputSpec): HTMLElement {
-  // must wrap top-level observable in an element, or the HTMLElement returned will not update
+export function renderSpec(parentSub: Subscription, structure: DOMOutputSpec): Element {
+  // must wrap top-level observable in an element, or the Element returned will not update
   // if it's detached from the DOM (which is very confusing)
   if (isObservable(structure)) throw new Error("Cannot render an observable root")
-  // DOMOutputSpec must result in an HTMLElement
-  return renderSpecDoc(document, parentSub, structure) as HTMLElement
+  // DOMOutputSpec must result in an Element
+  return renderSpecDoc(document, parentSub, structure) as Element
+}
+
+type CtxScope = StackItem<unknown>[]
+
+const globalContextStack = new St<CtxScope, 0 | 1 | 2>(0)
+type StackItem<T> = Readonly<{
+  /** key */
+  c: Context<T>
+  /** value */
+  v: T
+}>
+
+/**
+ * Pull a context from the current render function's execution frame.
+ *
+ * @example
+ * import {createContext, useContext} from "jsx-view"
+ *
+ * const themeContext = createContext({
+ *   textColor: "cornflowerblue"
+ * })
+ *
+ * function MyComponent(props, children) {
+ *   const theme = useContext(themeContext)
+ *   return <p style={`color: ${theme.textColor}`}>
+ *     Styled text
+ *   </p>
+ * }
+ */
+export function useContext<T>(context: Context<T>): T {
+  if (globalContextStack.s < 1) throw new ContextAccessError("useContext")
+  const curr = globalContextStack.get()
+  for (let i = curr.length - 1; i >= 0; i--) {
+    if (curr[i].c === context) return curr[i].v as T
+  }
+  return context.defaultValue
+}
+
+/**
+ * Add a value for the context to the current render scope which will be passed down to child dom components.
+ *
+ * @example
+ * import {createContext, useContext, addContext} from "jsx-view"
+ *
+ * const themeContext = createContext({
+ *   textColor: "cornflowerblue"
+ * })
+ *
+ * function MyParent(props, children) {
+ *   const theme = useContext(themeContext) // pull default / parent provided context
+ *
+ *   addContext(themeContext, {...theme, textColor: "dodgerblue"}) // Makes MyComponent style with dodgerblue
+ *
+ *   return <p style={`color: ${theme.textColor}`}>
+ *     Styled cornflowerblue
+ *     <MyComponent/>
+ *   </p>
+ * }
+ *
+ * function MyComponent(props, children) {
+ *   const theme = useContext(themeContext)
+ *   return <p style={`color: ${theme.textColor}`}>
+ *     Styled dodgerblue
+ *   </p>
+ * }
+ */
+export function addContext<T>(context: Context<T>, value: T): T {
+  if (globalContextStack.s < 2) throw new ContextAccessError("addContext")
+  globalContextStack.get().push({ c: context, v: value })
+  return value
+}
+
+export class ContextAccessError extends Error {
+  constructor(intent: string) {
+    super(`Cannot ${intent} outside of a jsx component's function call frame.`)
+  }
 }
 
 /** Examples: `<input disabled/>`, `<script defer .../>`, etc. */
@@ -66,24 +143,14 @@ function renderSpecDoc(
   doc: Document,
   parentSub: Subscription,
   structure: DOMOutputSpec,
+  scope: CtxScope = [],
   xmlNS: string | null = null,
 ): Node | Text {
-  let context = null
-  if (structure instanceof DOMSpecElement) {
-    if (Array.isArray(structure.spec)) {
-      const tagName = structure.spec[0]
-      if (tagName === "function") {
-        context = globalContextStack.pushFrame()
-        structure = tagName(structure[1], (structure as unknown as any[]).slice(2))
-        globalContextStack.popFrame()
-      }
-    }
-    structure = structure.spec
-  }
+  if (structure instanceof DOMSpecElement) structure = structure.spec
   if (typeof structure === "string") return doc.createTextNode(structure)
   if (structure == null || structure === false) return doc.createTextNode("")
   if (isObservableUnchecked<DOMOutputSpec>(structure)) {
-    let obsNode: HTMLElement = doc.createElement("render-observable") // temporary until the first is rendered
+    let obsNode: Element = doc.createElement("render-observable") // temporary until the first is rendered
     subscribeState(parentSub, structure, (spec, whileSpec) => {
       const oldNode = obsNode
       obsNode = renderSpecDoc(
@@ -92,11 +159,13 @@ function renderSpecDoc(
         spec == null || spec === false
           ? createEmptyNode(doc)
           : spec instanceof DOMSpecElement || Array.isArray(spec)
-          ? // will have a valid HTMLElement container
+          ? // will have a valid Element container
             (spec as DOMOutputSpec)
           : // might not have a container
             ["render-observable", null, spec],
-      ) as HTMLElement
+        scope,
+        xmlNS,
+      ) as Element
       oldNode.replaceWith(obsNode)
     })
 
@@ -104,16 +173,34 @@ function renderSpecDoc(
   }
   if (structure["nodeType"] != null) return structure as Node
   let tagName = structure[0]
+  if (typeof tagName === "function") {
+    scope = scope.slice(0) // clone scope so it can be pushed to
+    globalContextStack.push(scope)
+    globalContextStack.s = 2
+    structure = tagName(structure[1], (structure as unknown as any[]).slice(2))
+    const res = renderSpecDoc(
+      doc,
+      parentSub,
+      // Hmm: Do we need to check if it has a proper container like with the observable one above?
+      structure,
+      scope,
+      xmlNS,
+    ) as Element
+    globalContextStack.pop()
+    globalContextStack.s = 0
+    return res
+  }
+
   if (tagName.indexOf(" ") > 0) {
     throw new RangeError(`Unexpected space in tagName ("${tagName}")`)
   }
   const attrs = structure[1]
-  let ref: ((self: HTMLElement, sub: Subscription) => any) | undefined = undefined
-  let classAttrHandled = false
+  let ref: JSX.RefValue | undefined = undefined
+  let classAttrHandled: 0 | 1 = 0
 
   tagName = attrs?.is ?? tagName
   if (tagName === "svg") xmlNS = "http://www.w3.org/2000/svg"
-  const dom = (xmlNS ? doc.createElementNS(xmlNS, tagName) : doc.createElement(tagName)) as HTMLElement
+  const dom = (xmlNS ? doc.createElementNS(xmlNS, tagName) : doc.createElement(tagName)) as Element
   if (attrs != null) {
     for (let name in attrs) {
       if (name === "is") continue // handled above
@@ -121,7 +208,7 @@ function renderSpecDoc(
       if (attrVal != null) {
         if (name === "$class" || name === "class" || name === "tags") {
           if (classAttrHandled) continue // already performed
-          classAttrHandled = true
+          classAttrHandled = 1
           const classNamesList: JSX.ClassNames[] = attrs.class ? [attrs.class] : [] // works because `attrs.class` is `StringValue`
           const val$classes = attrs.$class as JSX.$ClassValue | undefined
           if (Array.isArray(val$classes)) {
@@ -196,7 +283,9 @@ function renderSpecDoc(
               throw new RangeError("Cannot combine $style property with an Observable [style] property.")
             parentSub.add(
               attrVal.subscribe((value) => {
-                Object.assign(dom.style, value)
+                for (const key in value as any) {
+                  ;(dom as HTMLElement).style[key] = (value as any)[key]
+                }
               }),
             )
           } else if (isDirectAssignProp(name)) {
@@ -213,30 +302,45 @@ function renderSpecDoc(
               }),
             )
         } else {
-          // Storyscript specific change to enable event listeners and boolean props
+          // enable event listeners and boolean props
           if (isDirectAssignProp(name)) {
             dom[name] = attrVal
           } else if (name === "ref") {
             ref = attrVal
           } else if (name === "$style") {
-            Object.assign(dom.style, attrVal)
+            for (const key in attrVal as any) {
+              ;(dom as HTMLElement).style[key] = (attrVal as any)[key]
+            }
           } else dom.setAttribute(name, attrVal)
         }
       }
     }
   }
+
+  // render children
   // @ts-ignore
   for (let i = 2; i < structure.length; i++) {
     let child = structure[i]
-    const inner = renderSpecDoc(doc, parentSub, child, xmlNS)
+    const inner = renderSpecDoc(doc, parentSub, child, scope, xmlNS)
     dom.appendChild(inner)
   }
-  // call ref after the inner contents are created
-  ref?.(dom, parentSub)
+
+  if (ref) {
+    globalContextStack.push(scope)
+    globalContextStack.s = 1
+    if (typeof ref === "function") {
+      // call ref after the inner contents are created
+      ref(dom, parentSub)
+    } else {
+      ref.next({ dom, sub: parentSub })
+    }
+    globalContextStack.pop()
+    globalContextStack.s = 0
+  }
   return dom
 }
 
-function createEmptyNode(document: Document): HTMLElement {
+function createEmptyNode(document: Document): Element {
   return document.createElement("render-empty")
 }
 

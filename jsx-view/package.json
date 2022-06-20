@@ -1,7 +1,7 @@
 {
   "name": "jsx-view",
-  "version": "0.0.5",
-  "description": "Minimal JSX templating tightly integrated with RxJS",
+  "version": "0.1.0-dev.0",
+  "description": "Minimal JSX view layer tightly integrated with RxJS",
   "main": "index.js",
   "scripts": {
     "build": "rimraf index.* jsx*runtime.* dist/* lib/* && tsc -p ./tsconfig-build.json",
