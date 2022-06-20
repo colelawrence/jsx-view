@@ -7,6 +7,7 @@ import "./lib/declare/declare-props"
 import "./lib/declare/declare-special-props"
 import "./lib/declare/declare-values"
 
+export * from "./lib/Context"
 export * from "./lib/renderSpec"
 export * from "./lib/rxjs-helpers"
 export * from "./lib/subscribeState"
