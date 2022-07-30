@@ -8,12 +8,17 @@ import { isObservableUnchecked } from "./isObservableUnchecked"
 import { St } from "./stack"
 import { Context } from "./Context"
 
-export function renderSpec(parentSub: Subscription, structure: DOMOutputSpec): Element {
+/**
+ * Render out an Element which can be appended to another Node in the DOM.
+ * 
+ * TypeScript: Defaults to assuming the return is an {@link HTMLElement}, but it can be customized using a type parameter.
+ */
+export function renderSpec<T extends Element = HTMLElement>(parentSub: Subscription, structure: DOMOutputSpec): T {
   // must wrap top-level observable in an element, or the Element returned will not update
   // if it's detached from the DOM (which is very confusing)
-  if (isObservable(structure)) throw new Error("Cannot render an observable root")
+  if (isObservable(structure)) throw new Error("Cannot render an Observable root")
   // DOMOutputSpec must result in an Element
-  return renderSpecDoc(document, parentSub, structure) as Element
+  return renderSpecDoc(document, parentSub, structure) as T
 }
 
 type CtxScope = StackItem<unknown>[]
