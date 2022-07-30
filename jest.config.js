@@ -1,22 +1,29 @@
+// @ts-check
 // const { pathsToModuleNameMapper } = require("ts-jest/utils")
 // const { compilerOptions } = require("./tsconfig.json")
 const path = require("path")
 
+/** @type {import("jest").Config}*/
 module.exports = {
-  preset: "ts-jest",
-  testEnvironment: "node",
   verbose: true,
-  setupFiles: [
-    // "<rootDir>/src/_mocks.ts",
-  ],
-  moduleNameMapper: {
-    // ...pathsToModuleNameMapper(compilerOptions.paths, { prefix: "<rootDir>/" }),
-  },
+  setupFiles: [],
   testEnvironment: "jsdom",
-  // testPathIgnorePatterns: ["_todo/*"],
-  globals: {
-    "ts-jest": {
-      tsconfig: path.join(__dirname, "./tsconfig.json"),
-    },
+
+  transform: {
+    "^.+\\.(t|j)sx?$": [
+      "@swc/jest",
+      {
+        /** @type {import('@swc/core').JscConfig} */
+        jsc: {
+          transform: {
+            react: {
+              runtime: "automatic",
+              importSource: "jsx-view",
+            },
+          },
+        },
+      },
+    ],
   },
+  // testPathIgnorePatterns: ["_todo/*"]
 }

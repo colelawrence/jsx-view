@@ -231,13 +231,13 @@ describe("rendering with observables", () => {
         <h1
           style="font-style: italics"
         >
-          <render-observable>
+          <jsx-view-observable>
             Heading 1
-          </render-observable>
+          </jsx-view-observable>
         </h1>
-        <render-observable>
+        <jsx-view-observable>
           text node content
-        </render-observable>
+        </jsx-view-observable>
       </div>
     `)
     from.next("updated text")
@@ -248,13 +248,13 @@ describe("rendering with observables", () => {
         <h1
           style="font-style: italics"
         >
-          <render-observable>
+          <jsx-view-observable>
             Heading 1
-          </render-observable>
+          </jsx-view-observable>
         </h1>
-        <render-observable>
+        <jsx-view-observable>
           updated text
-        </render-observable>
+        </jsx-view-observable>
       </div>
     `)
     from.next(["b", null, "Swap text node with bold tag"])
@@ -265,9 +265,9 @@ describe("rendering with observables", () => {
         <h1
           style="font-style: italics"
         >
-          <render-observable>
+          <jsx-view-observable>
             Heading 1
-          </render-observable>
+          </jsx-view-observable>
         </h1>
         <b>
           Swap text node with bold tag
@@ -362,9 +362,9 @@ describe("rendering with observables", () => {
     expect(buttonStyle$.observers).toHaveLength(0)
     expectButton.toMatchInlineSnapshot(`
       <section>
-        <render-observable>
+        <jsx-view-observable>
           cleared
-        </render-observable>
+        </jsx-view-observable>
       </section>
     `)
 
@@ -375,9 +375,9 @@ describe("rendering with observables", () => {
     expect(buttonStyle$.observers).toHaveLength(0)
     expectButton.toMatchInlineSnapshot(`
       <section>
-        <render-observable>
+        <jsx-view-observable>
           cleared
-        </render-observable>
+        </jsx-view-observable>
       </section>
     `)
   })

@@ -3,17 +3,18 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "test": "jest",
+    "test": "pnpm build && jest",
     "build": "pnpm -C jsx-view build",
     "playground": "pnpm -C packages/playground start"
   },
   "devDependencies": {
-    "@types/jest": "^26.0.24",
-    "jest": "^28",
-    "jest-environment-jsdom": "^28.1.0",
+    "@swc/core": "^1.2.220",
+    "@swc/jest": "^0.2.22",
+    "@types/jest": "^28.1.6",
+    "jest": "^28.1.3",
+    "jest-environment-jsdom": "^28.1.3",
     "rimraf": "^3.0.2",
     "rxjs": "^7.5",
-    "ts-jest": "^28",
     "tslib": "^2.4",
     "typescript": "^4.7.3"
   }

@@ -1,5 +1,5 @@
 import { Subscription } from "rxjs"
-import { jsxSpec, renderSpec } from "./"
+import { renderSpec } from "./"
 
 function expectSpec(structure: JSX.Element) {
   return expect(renderSpec(new Subscription(), structure))

@@ -1,8 +1,11 @@
 {
   "extends": "./tsconfig-base.json",
   "compilerOptions": {
-    "jsx": "react",
-    "jsxFactory": "jsxSpec"
+    "jsx": "react-jsx",
+    "jsxImportSource": "jsx-view",
+    "types": [
+      "jest"
+    ]
   },
   "include": [
     "./*.ts",

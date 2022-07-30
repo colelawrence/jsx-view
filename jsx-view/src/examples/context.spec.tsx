@@ -1,5 +1,5 @@
 import { BehaviorSubject, Subscription } from "rxjs"
-import { jsxSpec, renderSpec, useContext, createContext, addContext } from ".."
+import { renderSpec, useContext, createContext, addContext } from ".."
 
 function expectSpec(structure: JSX.Element) {
   return expect(renderSpec(new Subscription(), structure))
@@ -104,7 +104,7 @@ describe("context stuff", () => {
 <div
   class="provide-text"
 >
-  <render-empty />
+  <jsx-view-empty />
 </div>
 `)
     $1.next(<ContextTextLabel />)
@@ -144,7 +144,7 @@ describe("context stuff", () => {
   <div
     class="append-text"
   >
-    <render-empty />
+    <jsx-view-empty />
   </div>
 </div>
 `)

@@ -1,5 +1,5 @@
 import { BehaviorSubject, Subscription } from "rxjs"
-import { jsxSpec, renderSpec } from ".."
+import { renderSpec } from ".."
 
 function expectSpec(structure: JSX.Element) {
   return expect(renderSpec(new Subscription(), structure))
@@ -14,9 +14,9 @@ describe("observable elements", () => {
       <div
         style="Hello"
       >
-        <render-observable>
+        <jsx-view-observable>
           Hello
-        </render-observable>
+        </jsx-view-observable>
       </div>
     `)
 
@@ -26,9 +26,9 @@ describe("observable elements", () => {
       <div
         style="Hello, Steve!"
       >
-        <render-observable>
+        <jsx-view-observable>
           Hello, Steve!
-        </render-observable>
+        </jsx-view-observable>
       </div>
     `)
   })
@@ -38,9 +38,9 @@ describe("observable elements", () => {
 
     expectDom.toMatchInlineSnapshot(`
       <div>
-        <render-observable>
+        <jsx-view-observable>
           Hello
-        </render-observable>
+        </jsx-view-observable>
       </div>
     `)
 

@@ -1,7 +1,7 @@
 import { isObservable, Observer, Subscription } from "rxjs"
 import { distinctUntilChanged } from "rxjs/operators"
 import { DOMOutputSpec } from "./DOMOutputSpec"
-import { DOMSpecElement } from "./jsxSpec"
+import { DOMSpecElement, __isDOMSpecElement } from "./jsxSpec"
 import { map$Class } from "./rxjs-helpers"
 import { subscribeState } from "./subscribeState"
 import { isObservableUnchecked } from "./isObservableUnchecked"
@@ -146,11 +146,11 @@ function renderSpecDoc(
   scope: CtxScope = [],
   xmlNS: string | null = null,
 ): Node | Text {
-  if (structure instanceof DOMSpecElement) structure = structure.spec
+  if (__isDOMSpecElement(structure)) structure = structure.spec
   if (typeof structure === "string") return doc.createTextNode(structure)
   if (structure == null || structure === false) return doc.createTextNode("")
   if (isObservableUnchecked<DOMOutputSpec>(structure)) {
-    let obsNode: Element = doc.createElement("render-observable") // temporary until the first is rendered
+    let obsNode: Element = doc.createElement("jsx-view-observable") // temporary until the first is rendered
     subscribeState(parentSub, structure, (spec, whileSpec) => {
       const oldNode = obsNode
       obsNode = renderSpecDoc(
@@ -158,11 +158,11 @@ function renderSpecDoc(
         whileSpec,
         spec == null || spec === false
           ? createEmptyNode(doc)
-          : spec instanceof DOMSpecElement || Array.isArray(spec)
+          : __isDOMSpecElement(spec) || Array.isArray(spec)
           ? // will have a valid Element container
             (spec as DOMOutputSpec)
           : // might not have a container
-            ["render-observable", null, spec],
+            ["jsx-view-observable", null, spec],
         scope,
         xmlNS,
       ) as Element
@@ -341,7 +341,7 @@ function renderSpecDoc(
 }
 
 function createEmptyNode(document: Document): Element {
-  return document.createElement("render-empty")
+  return document.createElement("jsx-view-empty")
 }
 
 function mapTagsToClassNames(tags: string[] | undefined): string {

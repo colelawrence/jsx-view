@@ -1,8 +1,8 @@
 {
   "extends": "../../tsconfig-base.json",
   "compilerOptions": {
-    "jsxFactory": "jsxSpec",
-    "jsx": "react",
+    "jsx": "react-jsx",
+    "jsxImportSource": "jsx-view",
     "rootDir": "../../",
     "outDir": "./www/js"
   },

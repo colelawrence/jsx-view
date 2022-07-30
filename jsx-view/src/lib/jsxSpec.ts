@@ -13,19 +13,30 @@ declare global {
   }
 }
 
+const DOMSpecElementMarker = Symbol.for("jsx-view/DOMSpecElement")
+
 export class DOMSpecElement {
   constructor(public readonly spec: DOMOutputSpec) {}
+  [DOMSpecElementMarker] = true
+}
+
+/** @internal */
+export function __isDOMSpecElement(obj: any): obj is DOMSpecElement {
+  // The !! is to ensure that this publicly exposed function returns
+  // `false` if something like `null` or `0` is passed.
+  return (!!obj && obj instanceof DOMSpecElement) || obj?.[DOMSpecElementMarker] === true
 }
 
 export function jsxSpec(
   elemName: string | ((props: any, children: JSX.Element[]) => JSX.Element),
-  props: Record<string, string> | null,
+  { children: childrenFromProps, ...props }: Record<string, any>,
   // JSX TypeScript allows all sorts of interpolatable info as expressions including numbers by default
   // I'm not sure if it's possible to overwrite what is allowed to be in these expressions, so we have
   // to fix the children before passing along to `renderSpec`.
-  ...children: JSX.Child[]
+  ...childrenFromArgs: JSX.Child[]
 ): JSX.Element {
-  const fixChildren = flattenChildren(children)
+  // Hmm: Not really sure what to do with both children from props vs children from args...
+  const fixChildren = flattenChildren([childrenFromProps, ...childrenFromArgs])
   return new DOMSpecElement([elemName, props, ...fixChildren])
   // if (typeof elemName === "string") return new DOMSpecElement([elemName, props, ...fixChildren])
   // else return elemName(props ?? {}, fixChildren) as any
