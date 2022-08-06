@@ -29,15 +29,17 @@ export function __isDOMSpecElement(obj: any): obj is DOMSpecElement {
 
 export function jsxSpec(
   elemName: string | ((props: any, children: JSX.Element[]) => JSX.Element),
-  { children: childrenFromProps, ...props }: Record<string, any>,
+  props: Record<string, any> | null,
   // JSX TypeScript allows all sorts of interpolatable info as expressions including numbers by default
   // I'm not sure if it's possible to overwrite what is allowed to be in these expressions, so we have
   // to fix the children before passing along to `renderSpec`.
   ...childrenFromArgs: JSX.Child[]
 ): JSX.Element {
+  if (!props) props = {}
+  const { children: childrenFromProps, ...givenProps } = props
   // Hmm: Not really sure what to do with both children from props vs children from args...
   const fixChildren = flattenChildren([childrenFromProps, ...childrenFromArgs])
-  return new DOMSpecElement([elemName, props, ...fixChildren])
+  return new DOMSpecElement([elemName, givenProps, ...fixChildren])
   // if (typeof elemName === "string") return new DOMSpecElement([elemName, props, ...fixChildren])
   // else return elemName(props ?? {}, fixChildren) as any
 }

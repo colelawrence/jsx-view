@@ -1,6 +1,6 @@
 {
   "name": "jsx-view",
-  "version": "0.1.0-dev.7",
+  "version": "0.1.0-dev.8",
   "description": "Minimal JSX view layer tightly integrated with RxJS",
   "main": "index.js",
   "exports": {
