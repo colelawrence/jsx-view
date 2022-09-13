@@ -1,6 +1,6 @@
 {
   "name": "jsx-view",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Minimal JSX for HTML DOM tightly integrated with RxJS. TypeScript definitions, and attributes can be assigned to observables.",
   "main": "index.js",
   "type": "module",
@@ -26,7 +26,8 @@
   ],
   "author": "Cole Lawrence <cole@colelawrence.com>",
   "repository": {
-    "url": "https://github.com/colelawrence/jsx-view"
+    "url": "https://github.com/colelawrence/jsx-view",
+    "directory": "jsx-view"
   },
   "license": "MIT",
   "devDependencies": {
