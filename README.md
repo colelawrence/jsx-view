@@ -1,4 +1,3 @@
-
 <div align="center">
   <h1>jsx-view</h1>
   <h3>An MVVM / BLoC HTML DOM view library for RxJS</h3>
@@ -28,17 +27,27 @@
 - Business Logic Components [BLoC]
 - Model-View-ViewModel [MVVM]
 
+**Features**
+
+- No DOM diffing and no "lifecycle loop". Only Observables which get subscribed to and [directly update the DOM elements](src/examples/observable-elements.spec.tsx).
+- Minimal JSX wiring up with full type definitions for all common `HTMLElement` attributes.
+- Any attribute accepts an Observable of its value, and this is type checked.
+- An Observable of any [`JSX.Child`](src/lib/jsxSpec.ts) (`string`, `null`, `JSX.Element`, etc), can be used as a `JSX.Child`.
+- Adds [special props](src/lib/declare/declare-special-props.ts): `is`, `$style`, `$class`, `ref`, and `tags`.
+- exports declaration maps (go-to-def goes to TypeScript source code)
+
 ## Todo App example
 
 > This was adapted from [a similar demo I put together with React + RxJS](https://refactorordie.com/storybook/?path=/story/writing-observable-state-presentations--react-nyc-oct-2019-todo-app), so if tehre's something missing or misspelled, please accept my apologies.
 
-```jsx
+```tsx
+// TodoView.tsx
+import { useContext, createContext, renderSpec } from "jsx-view"
+import type { Subscription } from "rxjs"
 import { map } from "rxjs/operators"
-import { useContext, createContext } from "jsx-view"
-import createTodoState from "./TodoState"
+import createTodoState, { Todo } from "./TodoState"
 
-/** @type {Todo[]} */
-const todos = [
+const todos: Todo[] = [
   createTodo("Build UI for TodoApp", true),
   createTodo("Toggling a Todo"),
   createTodo("Deleting a Todo"),
@@ -46,8 +55,10 @@ const todos = [
   createTodo("Adding a Todo"),
 ]
 
-export default function AppRoot() {
-  return <TodoApp></TodoApp>
+export default function mountApp(parentSub: Subscription, container: HTMLElement) {
+  const element = renderSpec(parentSub, <TodoApp />)
+  container.appendChild(element)
+  parentSub.add(() => container.removeChild(element))
 }
 
 const TodoState = createContext(createTodoState(todos))
@@ -60,24 +71,30 @@ function TodoApp() {
       <h1>
         Todos <small style={{ fontSize: "16px" }}>APP</small>
       </h1>
-      <ul class="list-group">
-        {state.todos$.pipe(map((todosArr) => todosArr.map((todo) => <TodoItem todo={todo} />)))}
-      </ul>
+      {state.todos$.pipe(
+        map((todosArr) => (
+          <ul class="list-group">
+            {todosArr.map((todo) => (
+              <TodoItem todo={todo} />
+            ))}
+          </ul>
+        )),
+      )}
       <br />
-      <form class="form-group" onSubmit={preventDefaultThen(state.addTodo)}>
-        <label htmlFor="todo-title">New Todo Title</label>
+      <form class="form-group" onsubmit={preventDefaultThen(state.addTodo)}>
+        <label for="todo-title">New Todo Title</label>
         <div class="input-group">
-          <state.$todoInput.react
-            next={(value) => (
-              <input
-                id="todo-title"
-                type="text"
-                class="form-control"
-                value={value}
-                onchange={changeValue(state.updateNewTodoInput)}
-                placeholder="What do you want to get done?"
-              />
-            )}
+          <input
+            id="todo-title"
+            type="text"
+            class="form-control"
+            // Assign any observable to any attribute when the
+            // observable emits, the only work that happens is
+            // a direct assignment to the attribute on the HTML
+            // element.
+            value={state.todoInput$}
+            onchange={changeValue(state.updateNewTodoInput)}
+            placeholder="What do you want to get done?"
           />
           <button class="btn btn-primary">Add</button>
         </div>
@@ -86,11 +103,8 @@ function TodoApp() {
   )
 }
 
-/**
- * TodoItem appears within the TodoApp
- * @param {{ todo: Todo }} props
- */
-function TodoItem({ todo }) {
+/** Todo Item appears within {@link TodoApp} */
+function TodoItem({ todo }: { todo: Todo }) {
   const state = useContext(TodoState)
 
   return (
@@ -113,42 +127,29 @@ function TodoItem({ todo }) {
     </li>
   )
 }
-
 /**
  * Helper for creating `onchange` listeners
- *
- * Example:
- * ```jsx
- *  return <input onchange={changeValue(state.updateValue)} value={state.value$}/>
- * ```
- *
- * @param {(value: string) => any} handler
- * @returns {(this: HTMLFormElement | HTMLInputElement, evt: ChangeEvent) => void}
+ * @example
+ * <input onchange={changeValue(state.updateValue)} value={state.value$}/>
  */
-export function changeValue(handler) {
-  return function () {
+export function changeValue(handler: (value: string) => any) {
+  return function (this: HTMLFormElement | HTMLInputElement, _evt: ChangeEvent) {
     handler(this.value)
   }
 }
 
 /**
  * Helper for canceling default behaviors in functions
- *
- * Example:
- * ```jsx
- *  return <form
- *    onsubmit={preventDefaultThen(() => console.log('prevented default submit'))}
- *  >
- *    ...
- *    <button>Submit</button>
- *  </form>
- * ```
- *
- * @param {() => void} handler
- * @returns {(evt: { preventDefault: Function }) => void}
+ * @example
+ * <form
+ *   onsubmit={preventDefaultThen(() => console.log('prevented default submit'))}
+ * >
+ *   ...
+ *   <button>Submit</button>
+ * </form>
  */
-export function preventDefaultThen(handler) {
-  return (evt) => {
+export function preventDefaultThen(handler: () => void) {
+  return (evt: { preventDefault: Function }) => {
     evt.preventDefault()
     handler()
   }
@@ -167,11 +168,8 @@ export function preventDefaultThen(handler) {
  * ```jsx
  *   <li {...onEnterOrClick(() => console.log('activated Item 1'))}>Item 1</li>
  * ```
- *
- * @param {() => void} handler
- * @returns {JSX.HtmlProps}
  */
-export function onEnterOrClick(handler) {
+export function onEnterOrClick(handler: () => void): JSX.HtmlProps {
   return {
     tabindex: "0",
     onclick: (evt) => {
@@ -190,34 +188,37 @@ export function onEnterOrClick(handler) {
   }
 }
 
+function createTodo(title: string, done = false): Todo {
+  return {
+    id: Math.random(),
+    title,
+    done,
+  }
+}
 ```
 
-```js
-// TodoState.js
-// @ts-check
+```ts
+// TodoState.ts
 import { BehaviorSubject } from "rxjs"
 
-/**
- * @param {Todo[]} initialTodos
- * @returns the "ViewModel"
- */
-export default function createTodoState(initialTodos = []) {
-  // "Model" values
-  const $todoInput$ = new BehaviorSubject("")
-  // jsx-view does not have diffing, so if you're re-rendering a constantly changing list
-  // you'll want to write a list helper for rxjs like the
-  // [BehaviorList](https://github.com/colelawrence/behavior-state/blob/master/src/BehaviorList.ts),
-  // which is an observable of an array of observables with a buffer.
+export type Todo = {
+  id: number
+  done: boolean
+  title: string
+}
+
+export default function createTodoState(initialTodos: Todo[] = []) {
   const $todos$ = new BehaviorSubject(initialTodos)
+  const $todoInput$ = new BehaviorSubject("")
 
   return {
     todos$: $todos$.asObservable(),
     todoInput$: $todoInput$.asObservable(),
-    updateNewTodoInput(value) {
+    updateNewTodoInput(value: string) {
       debug("updateNewTodoInput", value)
       $todoInput$.next(value)
     },
-    toggleTodo(id) {
+    toggleTodo(id: number) {
       debug("toggleTodo", id)
       $todos$.next(
         $todos$.value.map((todo) =>
@@ -229,7 +230,7 @@ export default function createTodoState(initialTodos = []) {
         ),
       )
     },
-    deleteTodo(id) {
+    deleteTodo(id: number) {
       debug("deleteTodo", id)
       $todos$.next($todos$.value.filter((todo) => todo.id !== id))
     },
@@ -252,15 +253,6 @@ export default function createTodoState(initialTodos = []) {
 
 const debug = console.log.bind(console, "%cTodoState", "color: dodgerblue")
 ```
-
-**Features**
-
-- No DOM diffing and no "lifecycle loop". Only Observables which get subscribed to and [directly update the DOM elements](src/examples/observable-elements.spec.tsx).
-- Minimal JSX wiring up with full type definitions for all common `HTMLElement` attributes.
-- Any attribute accepts an Observable of its value, and this is type checked.
-- An Observable of any [`JSX.Child`](src/lib/jsxSpec.ts) (`string`, `null`, `JSX.Element`, etc), can be used as a `JSX.Child`.
-- Adds [special props](src/lib/declare/declare-special-props.ts): `is`, `$style`, `$class`, `ref`, and `tags`.
-- exports declaration maps (go-to-def goes to TypeScript source code)
 
 #### Setting up your `tsconfig.json` or `jsconfig.json`
 

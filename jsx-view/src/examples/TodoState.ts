@@ -1,22 +1,24 @@
-// TodoState.js
-// @ts-check
+// TodoState.ts
 import { BehaviorSubject } from "rxjs"
 
-/**
- * @param {Todo[]} initialTodos
- */
-export default function createTodoState(initialTodos = []) {
+export type Todo = {
+  id: number
+  done: boolean
+  title: string
+}
+
+export default function createTodoState(initialTodos: Todo[] = []) {
   const $todos$ = new BehaviorSubject(initialTodos)
   const $todoInput$ = new BehaviorSubject("")
 
   return {
     todos$: $todos$.asObservable(),
     todoInput$: $todoInput$.asObservable(),
-    updateNewTodoInput(value) {
+    updateNewTodoInput(value: string) {
       debug("updateNewTodoInput", value)
       $todoInput$.next(value)
     },
-    toggleTodo(id) {
+    toggleTodo(id: number) {
       debug("toggleTodo", id)
       $todos$.next(
         $todos$.value.map((todo) =>
@@ -28,7 +30,7 @@ export default function createTodoState(initialTodos = []) {
         ),
       )
     },
-    deleteTodo(id) {
+    deleteTodo(id: number) {
       debug("deleteTodo", id)
       $todos$.next($todos$.value.filter((todo) => todo.id !== id))
     },
