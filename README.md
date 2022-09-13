@@ -71,6 +71,7 @@ function TodoApp() {
       <h1>
         Todos <small style={{ fontSize: "16px" }}>APP</small>
       </h1>
+      {/* Create an observable of a single element and drop it right in. */}
       {state.todos$.pipe(
         map((todosArr) => (
           <ul class="list-group">
