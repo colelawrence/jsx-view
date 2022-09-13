@@ -1,3 +1,4 @@
+import type { Observable } from "rxjs"
 import "./declare-values"
 
 declare global {
@@ -5,6 +6,12 @@ declare global {
     type ComponentFunction<P extends Record<string, any>> = (props: P, children: JSX.Child[]) => JSX.Child
     /** Get the Props from the component function */
     type Props<T extends ComponentFunction<any>> = Parameters<T>[0]
+
+    type StyleValueObject = {
+      [P in keyof CSSStyleDeclaration]?: CSSStyleDeclaration[P] | Observable<CSSStyleDeclaration[P]> | undefined
+    }
+
+    type AnyHtmlPropValue = AnyValue | StyleValueObject
 
     interface HtmlProps<T extends HTMLElement = HTMLElement> {
       accesskey?: StringValue
@@ -18,7 +25,7 @@ declare global {
       lang?: StringValue
       draggable?: BooleanValue
       spellcheck?: BooleanValue
-      style?: StringValue
+      style?: StringValue | StyleValueObject
       tabindex?: StringValue
       title?: StringValue
       translate?: Value<"yes" | "no">
@@ -91,7 +98,7 @@ declare global {
       type?: StringValue
       width?: NumberValue
       height?: NumberValue
-      [anything: string]: AnyValue | Function
+      [anything: string]: AnyHtmlPropValue
     }
     interface HtmlFieldSetProps extends HtmlProps<HTMLFieldSetElement> {
       disabled?: BooleanValue

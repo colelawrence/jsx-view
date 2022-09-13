@@ -2,33 +2,27 @@
   "compilerOptions": {
     "outDir": "out",
     "target": "ESNext",
-    "lib": [
-      "DOM",
-      "ESNext"
-    ],
-    "module": "CommonJS",
+    "lib": ["DOM", "ESNext"],
+    "module": "ES2020",
     "moduleResolution": "node",
     "sourceMap": true,
     "importHelpers": true,
     "declaration": true,
     "declarationMap": true,
     "strict": true,
+    "noImplicitAny": true,
+    "exactOptionalPropertyTypes": true,
+    "importsNotUsedAsValues": "error",
+    "isolatedModules": true,
     "allowJs": false,
-    "noImplicitAny": false,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "jsx-view": [
-        "./jsx-view/src/index.ts"
-      ],
-      "jsx-view/*": [
-        "./jsx-view/src/*"
-      ]
+      "jsx-view": ["./jsx-view/src/index.ts"],
+      "jsx-view/*": ["./jsx-view/src/*"]
     }
   },
   "typeAcquisition": {
     "enable": false,
-    "exclude": [
-      "react"
-    ]
+    "exclude": ["react"]
   }
 }

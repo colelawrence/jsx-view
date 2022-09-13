@@ -10,6 +10,11 @@ declare global {
     type Element = DOMSpecElement
     /** Child type for specifying functions that return a child element */
     type Child = undefined | null | false | string | number | Node | JSX.Element | Observable<Child>
+
+    // https://www.typescriptlang.org/docs/handbook/jsx.html#children-type-checking
+    interface ElementChildrenAttribute {
+      children: {} // specify children name to use
+    }
   }
 }
 

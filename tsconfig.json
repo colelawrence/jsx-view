@@ -8,13 +8,23 @@
     ]
   },
   "include": [
-    "./*.ts",
-    "./**/*.ts",
-    "./*.tsx",
-    "./**/*.tsx"
+    "./benches/*.ts",
+    "./benches/**/*.ts",
+    "./benches/*.tsx",
+    "./benches/**/*.tsx",
+    "./playground/*.ts",
+    "./playground/**/*.ts",
+    "./playground/*.tsx",
+    "./playground/**/*.tsx",
+    "./jsx-view/src/*.ts",
+    "./jsx-view/src/**/*.ts",
+    "./jsx-view/src/*.tsx",
+    "./jsx-view/src/**/*.tsx"
   ],
   "exclude": [
     "./jsx-view/lib/*.ts",
-    "./jsx-view/*.ts"
+    "./jsx-view/*.ts",
+    "./jsx-view/lib/*.d.ts",
+    "./jsx-view/*.d.ts"
   ]
 }

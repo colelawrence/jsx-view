@@ -1,16 +1,16 @@
-import { isObservable, Observer, Subscription } from "rxjs"
+import { isObservable, Observable, Subscription } from "rxjs"
 import { distinctUntilChanged } from "rxjs/operators"
-import { DOMOutputSpec } from "./DOMOutputSpec"
-import { DOMSpecElement, __isDOMSpecElement } from "./jsxSpec"
+import type { DOMOutputSpec } from "./DOMOutputSpec"
+import { __isDOMSpecElement } from "./jsxSpec"
 import { map$Class } from "./rxjs-helpers"
 import { subscribeState } from "./subscribeState"
 import { isObservableUnchecked } from "./isObservableUnchecked"
 import { St } from "./stack"
-import { Context } from "./Context"
+import type { Context } from "./Context"
 
 /**
  * Render out an Element which can be appended to another Node in the DOM.
- * 
+ *
  * TypeScript: Defaults to assuming the return is an {@link HTMLElement}, but it can be customized using a type parameter.
  */
 export function renderSpec<T extends Element = HTMLElement>(parentSub: Subscription, structure: DOMOutputSpec): T {
@@ -147,10 +147,11 @@ function isDirectAssignProp(prop: string): boolean {
 function renderSpecDoc(
   doc: Document,
   parentSub: Subscription,
-  structure: DOMOutputSpec,
+  structure_: DOMOutputSpec,
   scope: CtxScope = [],
   xmlNS: string | null = null,
 ): Node | Text {
+  let structure = structure_
   if (__isDOMSpecElement(structure)) structure = structure.spec
   if (typeof structure === "string") return doc.createTextNode(structure)
   if (structure == null || structure === false) return doc.createTextNode("")
@@ -176,7 +177,8 @@ function renderSpecDoc(
 
     return obsNode
   }
-  if (structure["nodeType"] != null) return structure as Node
+  if ((structure as any)["nodeType"] != null) return structure as Node
+  if (!Array.isArray(structure)) return doc.createTextNode(String(structure))
   let tagName = structure[0]
   if (typeof tagName === "function") {
     scope = scope.slice(0) // clone scope so it can be pushed to
@@ -196,6 +198,11 @@ function renderSpecDoc(
     return res
   }
 
+  if (typeof tagName !== "string") {
+    const err = new Error(`Expected string tagName, but found ${tagName}`)
+    console.error(err, { given: structure_ })
+    throw err
+  }
   if (tagName.indexOf(" ") > 0) {
     throw new RangeError(`Unexpected space in tagName ("${tagName}")`)
   }
@@ -264,7 +271,7 @@ function renderSpecDoc(
               } else if (typeof classItem === "string") classesToAdd = classItem.split(/\s+/g).filter(Boolean)
               else {
                 for (const className in classItem) {
-                  const classVal = classItem[className]
+                  const classVal = (classItem as any)[className]
                   // just check if truthy
                   if (classVal) {
                     if (isObservableUnchecked<boolean | undefined | null>(classVal)) {
@@ -286,17 +293,11 @@ function renderSpecDoc(
           if (name === "$style") {
             if (isObservable(attrs.style))
               throw new RangeError("Cannot combine $style property with an Observable [style] property.")
-            parentSub.add(
-              attrVal.subscribe((value) => {
-                for (const key in value as any) {
-                  ;(dom as HTMLElement).style[key] = (value as any)[key]
-                }
-              }),
-            )
+            subAssign$Style(parentSub, attrVal as Observable<Partial<CSSStyleDeclaration>>, dom as HTMLElement)
           } else if (isDirectAssignProp(name)) {
             parentSub.add(
               attrVal.subscribe((value) => {
-                if (dom[name] !== value) dom[name] = value
+                if ((dom as any)[name] !== value) (dom as any)[name] = value
               }),
             )
           } else
@@ -309,12 +310,14 @@ function renderSpecDoc(
         } else {
           // enable event listeners and boolean props
           if (isDirectAssignProp(name)) {
-            dom[name] = attrVal
+            ;(dom as any)[name] = attrVal
           } else if (name === "ref") {
             ref = attrVal
+          } else if (name === "style") {
+            subAssignStyle(parentSub, attrVal, dom as HTMLElement)
           } else if (name === "$style") {
             for (const key in attrVal as any) {
-              ;(dom as HTMLElement).style[key] = (attrVal as any)[key]
+              ;(dom as HTMLElement).style[key as any] = (attrVal as any)[key]
             }
           } else dom.setAttribute(name, attrVal)
         }
@@ -343,6 +346,61 @@ function renderSpecDoc(
     globalContextStack.s = 0
   }
   return dom
+}
+
+function subAssign$Style(parentSub: Subscription, attrVal: Observable<Partial<CSSStyleDeclaration>>, dom: HTMLElement) {
+  parentSub.add(
+    attrVal.subscribe((value) => {
+      for (const rule in value) {
+        if (rule.startsWith("--")) {
+          dom.style.setProperty(rule, value[rule] ?? null)
+        } else {
+          dom.style[rule] = value[rule] ?? ""
+        }
+      }
+    }),
+  )
+}
+
+function subAssignStyle(
+  parentSub: Subscription,
+  value: JSX.StyleValueObject | JSX.StringValue | undefined,
+  dom: HTMLElement,
+) {
+  if (!value) return
+
+  if (isObservable(value)) {
+    parentSub.add(
+      value.subscribe((styleStringValue) => {
+        if (styleStringValue) {
+          dom.setAttribute("style", styleStringValue)
+        } else {
+          dom.removeAttribute("style")
+        }
+      }),
+    )
+  } else if (typeof value === "object") {
+    for (const rule in value) {
+      const ruleVal = value[rule]
+      if (rule.startsWith("--")) {
+        if (isObservable(ruleVal)) parentSub.add(ruleVal.subscribe((a) => dom.style.setProperty(rule, a ?? null)))
+        else dom.style.setProperty(rule, ruleVal ?? null)
+      } else {
+        if (isObservable(ruleVal)) parentSub.add(ruleVal.subscribe((a) => (dom.style[rule] = a ?? "")))
+        else dom.style[rule] = ruleVal ?? ""
+      }
+    }
+  } else if (typeof value === "string") {
+    if (value) {
+      dom.setAttribute("style", value)
+    } else {
+      dom.removeAttribute("style")
+    }
+  } else {
+    const err = new TypeError("Unexpected type for style=...")
+    console.error(err, { found: value })
+    throw err
+  }
 }
 
 function createEmptyNode(document: Document): Element {

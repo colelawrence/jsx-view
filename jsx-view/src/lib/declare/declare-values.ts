@@ -5,11 +5,12 @@ export default 0
 
 declare global {
   namespace JSX {
-    type Value<T> = Observable<T | undefined> | T
+    type Value<T> = Observable<T | undefined> | T | undefined
     type StringValue = Value<string>
     type NumberValue = Value<number>
     type BooleanValue = Value<boolean>
     type DateValue = Value<Date>
+    type ChildrenValue = JSX.Child | ChildrenValue[]
     type RefValue<T = DOMElement> = ((dom: T, sub: Subscription) => any) | Observer<{ dom: T; sub: Subscription }>
     type $StyleValue = Value<Partial<CSSStyleDeclaration>>
     /**
@@ -28,6 +29,7 @@ declare global {
       | $ClassValue
       | $StyleValue
       | BooleanValue
+      | ChildrenValue
       | DateValue
       | NumberValue
       | RefValue<any>

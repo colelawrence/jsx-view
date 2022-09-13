@@ -11,6 +11,8 @@ declare global {
     interface ElementProps<T extends DOMElement = DOMElement> {
       /** Describe the actual tagName to use */
       is?: string
+      /** The children elements accept */
+      children?: ChildrenValue
       /**
        * Note: If you imported rxjs-extensions, you can use `Observable<T>.prototype.map$Class((from: T) => classes)`
        */

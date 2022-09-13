@@ -602,6 +602,12 @@ declare global {
       sub: HtmlProps<HTMLElement>
 
       /**
+       * # `<summary>`
+       * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/summary
+       */
+      summary: HtmlProps<HTMLElement>
+
+      /**
        * # `<sup>`
        * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/sup
        */

@@ -1,3 +1,4 @@
 /ts*
+/jest*
 *.cldev*
 **/*.cldev*
