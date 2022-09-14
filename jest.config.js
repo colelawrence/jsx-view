@@ -18,6 +18,7 @@ module.exports = {
           transform: {
             react: {
               runtime: "automatic",
+              development: true,
               importSource: "jsx-view",
             },
           },

@@ -1,8 +1,7 @@
+import { expect, it, describe } from "@jest/globals"
 import { BehaviorSubject, Observable, Subscription } from "rxjs"
 import { map } from "rxjs/operators"
-import { renderSpec } from "./"
-import { DOMOutputSpec } from "./lib/DOMOutputSpec"
-import { map$Class } from "./lib/rxjs-helpers"
+import { renderSpec, map$Class, DOMOutputSpec } from "jsx-view"
 
 function expectSpec(structure: DOMOutputSpec) {
   return expect(renderSpec(new Subscription(), structure))
@@ -76,7 +75,7 @@ describe("static rendering", () => {
     const dom = renderSpec(new Subscription(), [
       "div",
       { style: "color: blue" },
-      ["button", { onclick: (evt) => handled.push(evt) }, "Click me"],
+      ["button", { onclick: (evt: MouseEvent) => handled.push(evt) }, "Click me"],
     ])
 
     expect(dom).toMatchInlineSnapshot(`
@@ -277,7 +276,7 @@ describe("rendering with observables", () => {
   })
   it("renders with event handlers", () => {
     const handled: MouseEvent[] = []
-    const button$ = new BehaviorSpec(["button", { onclick: (evt) => handled.push(evt) }, "Click me"])
+    const button$ = new BehaviorSpec(["button", { onclick: (evt: MouseEvent) => handled.push(evt) }, "Click me"])
 
     const dom = renderSpec(new Subscription(), ["div", { style: "color: blue" }, button$])
     expect(dom).toMatchInlineSnapshot(`
@@ -484,13 +483,17 @@ describe("rendering with observable class$", () => {
     const doms = abcProps.map((a, idx) => ({ idx, dom: renderSpec(new Subscription(), ["div", a]) }))
     for (const { dom, idx } of doms) {
       if (dom.className !== "a b c") {
-        fail(`expected example ${idx} to include "c" as "a b c" classname; found ${JSON.stringify(dom.className)}`)
+        throw new Error(
+          `expected example ${idx} to include "c" as "a b c" classname; found ${JSON.stringify(dom.className)}`,
+        )
       }
     }
     includeC.next(false) // should remove class "c" from all examples
     for (const { dom, idx } of doms) {
       if (dom.className !== "a b") {
-        fail(`expected example ${idx} to not include "c" as "a b" classname; found ${JSON.stringify(dom.className)}`)
+        throw new Error(
+          `expected example ${idx} to not include "c" as "a b" classname; found ${JSON.stringify(dom.className)}`,
+        )
       }
     }
   }

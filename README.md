@@ -29,12 +29,52 @@
 
 **Features**
 
-- No DOM diffing and no "lifecycle loop". Only Observables which get subscribed to and [directly update the DOM elements](src/examples/observable-elements.spec.tsx).
+- No DOM diffing and no "lifecycle loop". Only Observables which get subscribed to and [directly update the DOM elements](./tests/observable-elements.spec.tsx).
 - Minimal JSX wiring up with full type definitions for all common `HTMLElement` attributes.
 - Any attribute accepts an Observable of its value, and this is type checked.
-- An Observable of any [`JSX.Child`](src/lib/jsxSpec.ts) (`string`, `null`, `JSX.Element`, etc), can be used as a `JSX.Child`.
-- Adds [special props](src/lib/declare/declare-special-props.ts): `is`, `$style`, `$class`, `ref`, and `tags`.
+- An Observable of any [`JSX.Child`](./jsx-view/src/lib/jsxSpec.ts) (`string`, `null`, `JSX.Element`, etc), can be used as a `JSX.Child`.
+- Adds [special props](./jsx-view/src/lib/declare/declare-special-props.ts): `is`, `$style`, `$class`, `ref`, and `tags`.
 - exports declaration maps (go-to-def goes to TypeScript source code)
+
+## Creating your first component
+
+```tsx
+function MyComponent(props: { title: JSX.Child, children: JSX.Children }) {
+  return <div>
+    <h3>{props.title}</h3>
+    {props.children}
+  </div>
+}
+
+const usage = <MyComponent title="Hello">
+  <p>content</p>
+</MyComponent>
+const usage2 = <MyComponent
+  title={<span>Hello <b>JSX-View</b></span>}
+  children={<p>content</p>}
+/>
+
+// `JSX.Child` includes `string`
+const $inputValue$ = new BehaviorSubject("Hello, JSX View!")
+const usage3 = <MyComponent
+  // You can embed Observable<string> (or any Observable<JSX.Child>)
+  // in between any tags
+  title={<span>Hello <b>{$inputValue$}</b></span>}
+  // You can also just use Observable<string> as a JSX.Child value
+  // title={$inputValue$}
+  children={[
+    <label for="your-title">Title</label>,
+    // Binding
+    <input
+      id="your-title" 
+      value={$inputValue$}
+      onchange={evt => 
+        $inputValue$.next((evt.target as HTMLInputElement).value)
+      }
+    />,
+  ]}
+/>
+```
 
 ## Todo App example
 
@@ -261,9 +301,29 @@ const debug = console.log.bind(console, "%cTodoState", "color: dodgerblue")
 {
   "compilerOptions": {
     "lib": ["DOM"],
-    "jsx": "react-jsxdev",
+
+    "jsx": "react-jsx",
+    // Alternatively, use `addJSXDev(fn)` handler with source locations with
+    // "jsx": "react-jsxdev",
+
     "jsxImportSource": "jsx-view",
   }
+}
+```
+
+#### Setting up with babel
+
+```json
+{
+  "plugins": [
+    [
+      "@babel/plugin-transform-react-jsx",
+      {
+        "runtime": "automatic", // defaults to classic
+        "importSource": "jsx-view" // defaults to react
+      }
+    ]
+  ]
 }
 ```
 
@@ -280,6 +340,8 @@ export default defineConfig({
   esbuild: {
     jsx: "automatic",
     jsxImportSource: "jsx-view",
+    // use in conjunction with providing your own `addJSXDev(fn)` handler
+    // jsxDev: true,
   },
 });
 ```

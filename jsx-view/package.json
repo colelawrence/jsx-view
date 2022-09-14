@@ -1,6 +1,6 @@
 {
   "name": "jsx-view",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Minimal JSX for HTML DOM tightly integrated with RxJS. TypeScript definitions, and attributes can be assigned to observables.",
   "main": "index.js",
   "type": "module",
@@ -31,8 +31,6 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@types/jest": "^28.1.6",
-    "jest": "^28.1.3",
     "rxjs": "^7.5",
     "tslib": "^2.4",
     "typescript": "^4.7.3"

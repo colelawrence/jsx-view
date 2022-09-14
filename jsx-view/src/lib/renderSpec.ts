@@ -7,6 +7,7 @@ import { subscribeState } from "./subscribeState"
 import { isObservableUnchecked } from "./isObservableUnchecked"
 import { St } from "./stack"
 import type { Context } from "./Context"
+import { JSXDevInfo, JSXViewDevFunction, JSXViewDevInfo, JSXViewDevRenderInfo, _devctx, _devctxglobal } from "./addJSXDev"
 
 /**
  * Render out an Element which can be appended to another Node in the DOM.
@@ -150,9 +151,26 @@ function renderSpecDoc(
   structure_: DOMOutputSpec,
   scope: CtxScope = [],
   xmlNS: string | null = null,
+  devRenderInfo: JSXViewDevRenderInfo | undefined = undefined,
 ): Node | Text {
   let structure = structure_
-  if (__isDOMSpecElement(structure)) structure = structure.spec
+  let _dev: JSXDevInfo | undefined
+  if (__isDOMSpecElement(structure)) {
+    _dev = structure._dev
+    structure = structure.spec
+  }
+  // passed down to children
+  let childRenderInfo: JSXViewDevRenderInfo = {
+    ...devRenderInfo,
+    // clear direct render info for children
+    directParentComponent: undefined,
+    directParentComponentProps: undefined,
+  }
+  if (devRenderInfo?.directParentComponent) {
+    childRenderInfo.parentComponent = devRenderInfo.directParentComponent
+    childRenderInfo.parentComponentProps = devRenderInfo?.directParentComponentProps
+  }
+
   if (typeof structure === "string") return doc.createTextNode(structure)
   if (structure == null || structure === false) return doc.createTextNode("")
   if (isObservableUnchecked<DOMOutputSpec>(structure)) {
@@ -171,6 +189,7 @@ function renderSpecDoc(
             ["jsx-view-observable", null, spec],
         scope,
         xmlNS,
+        devRenderInfo,
       ) as Element
       oldNode.replaceWith(obsNode)
     })
@@ -184,7 +203,12 @@ function renderSpecDoc(
     scope = scope.slice(0) // clone scope so it can be pushed to
     globalContextStack.push(scope)
     globalContextStack.s = 2
-    structure = tagName(structure[1], (structure as unknown as any[]).slice(2))
+    const props = structure[1]
+    structure = tagName(props)
+    if (devRenderInfo) {
+      devRenderInfo.directParentComponent = tagName
+      devRenderInfo.directParentComponentProps = props
+    }
     const res = renderSpecDoc(
       doc,
       parentSub,
@@ -192,6 +216,7 @@ function renderSpecDoc(
       structure,
       scope,
       xmlNS,
+      devRenderInfo,
     ) as Element
     globalContextStack.pop()
     globalContextStack.s = 0
@@ -203,10 +228,12 @@ function renderSpecDoc(
     console.error(err, { given: structure_ })
     throw err
   }
+
   if (tagName.indexOf(" ") > 0) {
     throw new RangeError(`Unexpected space in tagName ("${tagName}")`)
   }
   const attrs = structure[1]
+  if (devRenderInfo) devRenderInfo.intrinsicProps = attrs
   let ref: JSX.RefValue | undefined = undefined
   let classAttrHandled: 0 | 1 = 0
 
@@ -329,8 +356,30 @@ function renderSpecDoc(
   // @ts-ignore
   for (let i = 2; i < structure.length; i++) {
     let child = structure[i]
-    const inner = renderSpecDoc(doc, parentSub, child, scope, xmlNS)
+    const inner = renderSpecDoc(doc, parentSub, child, scope, xmlNS, childRenderInfo)
     dom.appendChild(inner)
+  }
+
+  // reach directly into scope to find the _devctx quickly
+  let foundDevFn = _devctxglobal[0]
+  for (let i = scope.length - 1; i >= 0; i--) {
+    const si = scope[i]
+    if (si.c !== _devctx) continue
+    foundDevFn = si.v as typeof foundDevFn
+    break
+  }
+  if (foundDevFn != null) {
+    const options = { ..._dev, ...devRenderInfo }
+    try {
+      foundDevFn(dom, options, parentSub)
+    } catch (err) {
+      console.warn("Error thrown running the configured addJSXDev(fn) function", {
+        error: err,
+        dom,
+        options,
+        fn: foundDevFn,
+      })
+    }
   }
 
   if (ref) {

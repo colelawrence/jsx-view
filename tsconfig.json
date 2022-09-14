@@ -1,13 +1,18 @@
 {
   "extends": "./tsconfig-base.json",
   "compilerOptions": {
-    "jsx": "react-jsx",
+    "jsx": "react-jsxdev",
     "jsxImportSource": "jsx-view",
     "types": [
       "jest"
-    ]
+    ],
   },
+  "references": [
+    { "path": "./jsx-view" }
+  ],
   "include": [
+    "./tests/*.ts",
+    "./tests/*.tsx",
     "./benches/*.ts",
     "./benches/**/*.ts",
     "./benches/*.tsx",

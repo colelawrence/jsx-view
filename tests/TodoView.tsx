@@ -1,5 +1,5 @@
 // TodoView.tsx
-import { useContext, createContext, renderSpec } from "../.."
+import { useContext, createContext, renderSpec } from "jsx-view"
 import type { Subscription } from "rxjs"
 import { map } from "rxjs/operators"
 import createTodoState, { Todo } from "./TodoState"

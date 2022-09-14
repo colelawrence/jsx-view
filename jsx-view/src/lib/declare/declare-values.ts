@@ -10,7 +10,6 @@ declare global {
     type NumberValue = Value<number>
     type BooleanValue = Value<boolean>
     type DateValue = Value<Date>
-    type ChildrenValue = JSX.Child | ChildrenValue[]
     type RefValue<T = DOMElement> = ((dom: T, sub: Subscription) => any) | Observer<{ dom: T; sub: Subscription }>
     type $StyleValue = Value<Partial<CSSStyleDeclaration>>
     /**
@@ -29,7 +28,7 @@ declare global {
       | $ClassValue
       | $StyleValue
       | BooleanValue
-      | ChildrenValue
+      | Children
       | DateValue
       | NumberValue
       | RefValue<any>

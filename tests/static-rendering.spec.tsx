@@ -1,5 +1,6 @@
+import { expect, it, describe } from "@jest/globals"
 import { BehaviorSubject, Subscription } from "rxjs"
-import { renderSpec } from ".."
+import { renderSpec } from "jsx-view"
 
 function expectSpec(structure: JSX.Element) {
   return expect(renderSpec(new Subscription(), structure))
@@ -85,11 +86,11 @@ describe("static rendering", () => {
   })
 })
 
-function ComponentA(props: { label: string }, children: JSX.Element[]) {
+function ComponentA(props: { label: string; children: JSX.Children }) {
   return (
     <label>
       {props.label}
-      <small>All children: {children}</small>
+      <small>All children: {props.children}</small>
     </label>
   )
 }

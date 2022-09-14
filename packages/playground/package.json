@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "esbuild ./index.tsx --jsx=automatic --sourcemap=inline --servedir=www --outdir=www/js --bundle"
+    "start": "esbuild ./index.tsx --jsx-dev --jsx=automatic --sourcemap=inline --servedir=www --outdir=www/js --bundle"
   },
   "devDependencies": {
     "esbuild": "^0.14.51",

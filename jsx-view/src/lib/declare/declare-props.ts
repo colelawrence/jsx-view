@@ -3,7 +3,18 @@ import "./declare-values"
 
 declare global {
   namespace JSX {
-    type ComponentFunction<P extends Record<string, any>> = (props: P, children: JSX.Child[]) => JSX.Child
+    /**
+     * Default children type for intrinsic elements.
+     * Ensure your elements can accept all children by declaring their `children` property as such:
+     * @example
+     * function MyComponent(props: { children: JSX.Children }) {
+     *   return <div class="my-component">{props.children}</div>
+     * }
+     */
+    type Children = JSX.Child | JSX.Children[]
+
+    type ComponentFunction<P extends Record<string, any>> = (props: P) => JSX.Child
+
     /** Get the Props from the component function */
     type Props<T extends ComponentFunction<any>> = Parameters<T>[0]
 

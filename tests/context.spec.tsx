@@ -1,5 +1,6 @@
 import { BehaviorSubject, Subscription } from "rxjs"
-import { renderSpec, useContext, createContext, addContext } from ".."
+import { renderSpec, useContext, createContext, addContext } from "jsx-view"
+import { describe, expect, it } from "@jest/globals"
 
 function expectSpec(structure: JSX.Element) {
   return expect(renderSpec(new Subscription(), structure))
@@ -59,9 +60,9 @@ describe("context stuff", () => {
   })
 
   it("can maintain correct context after re-renders", () => {
-    function ProvideText(props: { text: string }, children: JSX.Child[]) {
+    function ProvideText(props: { text: string; children: JSX.Child }) {
       addContext(contextText, props.text)
-      return <div>{children}</div>
+      return <div>{props.children}</div>
     }
 
     const $1 = new BehaviorSubject<JSX.Child>(null)
@@ -92,11 +93,11 @@ describe("context stuff", () => {
   })
 
   it("maintains correct context after multiple adds", () => {
-    function ProvideTextBanged(props: { text: string }, children: JSX.Child[]) {
+    function ProvideTextBanged(props: { text: string; children: JSX.Children }) {
       addContext(contextText, props.text)
       addContext(contextText, props.text + "!")
       addContext(contextText, props.text + "!!")
-      return <div class="provide-text">{children}</div>
+      return <div class="provide-text">{props.children}</div>
     }
 
     const $1 = new BehaviorSubject<JSX.Child>(null)
@@ -120,15 +121,15 @@ describe("context stuff", () => {
   })
 
   it("can extend context", () => {
-    function AddText(props: { append: string }, children: JSX.Child[]) {
+    function AddText(props: { append: string; children: JSX.Children }) {
       const current = useContext(contextText)
       addContext(contextText, current + " " + props.append)
-      return <div class="append-text">{children}</div>
+      return <div class="append-text">{props.children}</div>
     }
 
-    function ProvideText(props: { text: string }, children: JSX.Child[]) {
+    function ProvideText(props: { text: string; children: JSX.Children }) {
       addContext(contextText, props.text)
-      return <div class="provide-text">{children}</div>
+      return <div class="provide-text">{props.children}</div>
     }
 
     const $1 = new BehaviorSubject<JSX.Child>(null)

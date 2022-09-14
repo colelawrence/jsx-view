@@ -12,7 +12,7 @@ declare global {
       /** Describe the actual tagName to use */
       is?: string
       /** The children elements accept */
-      children?: ChildrenValue
+      children?: Children
       /**
        * Note: If you imported rxjs-extensions, you can use `Observable<T>.prototype.map$Class((from: T) => classes)`
        */

@@ -1,5 +1,6 @@
+import { expect, it, describe } from "@jest/globals"
 import { BehaviorSubject, Subscription } from "rxjs"
-import { renderSpec } from ".."
+import { renderSpec } from "jsx-view"
 
 function expectSpec(structure: JSX.Element) {
   return expect(renderSpec(new Subscription(), structure))

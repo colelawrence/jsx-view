@@ -3,7 +3,6 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "jsx-view",
-    "rootDir": "../../",
     "outDir": "./www/js"
   },
   "include": [

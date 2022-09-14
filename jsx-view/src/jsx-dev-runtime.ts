@@ -1,1 +1,1 @@
-export { jsxSpec as jsxDEV } from "."
+export { jsxDEV } from "./lib/jsxDEV"

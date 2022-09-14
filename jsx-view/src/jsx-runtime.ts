@@ -1,2 +1,2 @@
-export { jsxSpec as jsx } from "."
-export { jsxSpec as jsxs } from "."
+export { jsx as jsx } from "."
+export { jsx as jsxs } from "."
