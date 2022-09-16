@@ -1,6 +1,6 @@
 <div align="center">
   <h1>jsx-view</h1>
-  <h3>An MVVM / BLoC HTML DOM view library for RxJS</h3>
+  <h3>A simple HTML DOM JSX renderer with RxJS</h3>
   <a href="https://github.com/colelawrence/jsx-view/blob/main/LICENSE">
     <img alt="MIT License" src="https://img.shields.io/github/license/colelawrence/jsx-view" />
   </a>
@@ -46,10 +46,13 @@ function MyComponent(props: { title: JSX.Child, children: JSX.Children }) {
   </div>
 }
 
-const usage = <MyComponent title="Hello">
+
+<MyComponent title="Hello">
   <p>content</p>
 </MyComponent>
-const usage2 = <MyComponent
+
+
+<MyComponent
   title={<span>Hello <b>JSX-View</b></span>}
   children={<p>content</p>}
 />
