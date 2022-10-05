@@ -1,5 +1,5 @@
 import { isObservable, Observable, Subscription } from "rxjs"
-import { distinctUntilChanged } from "rxjs/operators"
+import { distinctUntilChanged, map } from "rxjs/operators"
 import type { DOMOutputSpec } from "./DOMOutputSpec"
 import { __isDOMSpecElement } from "./jsxSpec"
 import { map$Class } from "./rxjs-helpers"
@@ -7,7 +7,7 @@ import { subscribeState } from "./subscribeState"
 import { isObservableUnchecked } from "./isObservableUnchecked"
 import { St } from "./stack"
 import type { Context } from "./Context"
-import { JSXDevInfo, JSXViewDevFunction, JSXViewDevInfo, JSXViewDevRenderInfo, _devctx, _devctxglobal } from "./addJSXDev"
+import { JSXDevInfo, JSXViewDevRenderInfo, _devctx, _devctxglobal } from "./addJSXDev"
 
 /**
  * Render out an Element which can be appended to another Node in the DOM.
@@ -266,6 +266,12 @@ function renderSpecDoc(
                 ? valTag.pipe(map$Class(mapTagsToClassNames))
                 : mapTagsToClassNames(valTag),
             )
+
+            if (isObservableUnchecked<string[] | undefined>(valTag)) {
+              parentSub.add(valTag.subscribe((a) => dom.setAttribute("data-tags", a?.join(",") ?? "")))
+            } else {
+              dom.setAttribute("data-tags", valTag.join(","))
+            }
           }
           for (let i = 0; i < classNamesList.length; i++) {
             const classItem = classNamesList[i]
