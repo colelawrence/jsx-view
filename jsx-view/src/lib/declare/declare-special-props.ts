@@ -1,4 +1,3 @@
-import type { Observer, Subscription } from "rxjs"
 import "./declare-values"
 
 type _DOMElement = Element
